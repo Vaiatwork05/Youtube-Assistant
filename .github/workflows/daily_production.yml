@@ -1,0 +1,25 @@
+name: 🎬 Production Quotidienne
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: 📦 Install dependencies
+        run: pip install -r requirements.txt
+        
+      - name: 🎬 Production
+        run: python auto_assembly/daily_runner.py
