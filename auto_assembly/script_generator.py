@@ -13,7 +13,7 @@ def generate_scripts():
     themes = {
         "histoire": ["Pyramides", "Napoléon", "Rome Antique", "Moyen-Âge", "Révolution"],
         "science": ["Espace", "Quantique", "IA", "Climat", "Énergie"],
-        "mystere": ["OVNIs", "Civilisations", "Trésors", "Conspiration", Paranormal"]
+        "mystere": ["OVNIs", "Civilisations", "Trésors", "Conspiration", "Paranormal"]
     }
     
     scripts = []
