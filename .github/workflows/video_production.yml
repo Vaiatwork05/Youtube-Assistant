@@ -18,10 +18,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Install system dependencies
+      - name: Install eSpeak only
         run: |
           sudo apt-get update
-          sudo apt-get install -y festival festvox-fr festival-french espeak-ng ffmpeg
+          sudo apt-get install -y espeak-ng ffmpeg
           
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -35,9 +35,9 @@ jobs:
       - name: Save script data
         run: |
           echo '${{ github.event.inputs.script_data }}' > selected_script.json
-          echo "📄 Script ID: ${{ github.event.inputs.script_id }}"
+          echo "Script ID: ${{ github.event.inputs.script_id }}"
           
-      - name: Generate TTS audio (Free)
+      - name: Generate TTS with eSpeak
         run: |
           python auto_assembly/audio_generator.py
           
@@ -50,15 +50,3 @@ jobs:
         with:
           name: produced-video-${{ github.run_id }}
           path: output/videos/
-          retention-days: 7
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
-        if: success()
-        with:
-          files: output/videos/*.mp4
-          tag_name: video-${{ github.run_id }}
-          body: |
-            Video produite automatiquement
-            - Script: ${{ github.event.inputs.script_id }}
-            - Date: ${{ github.event.inputs.script_data.created_at || github.run_started_at }}
