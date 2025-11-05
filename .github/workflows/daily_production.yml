@@ -1,8 +1,8 @@
-name: 🎬 Production Quotidienne
+name: Production Quotidienne Snowfall
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 8 * * *'  # 8h du matin
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,18 @@ jobs:
           python-version: '3.11'
           
       - name: 📦 Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          
+      - name: 🎬 Production Video Snowfall
+        run: |
+          python auto_assembly/daily_runner.py
+          
+      - name: 📊 Rapport
+        if: always()
+        run: |
+          echo "=== RAPPORT SNOWFALL ==="
+          echo "Date: $(date)"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Status: ${{ job.status }}"
         
-      - name: 🎬 Production
-        run: python auto_assembly/daily_runner.py
