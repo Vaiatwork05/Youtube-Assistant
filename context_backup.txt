@@ -5,37 +5,14 @@ Soit quand même force de proposition mais sans prise d'initiative inutile qui n
 
 CONTEXTE_COURANT: 
 PROJET: YouTube Assistant Snowfall
-STATUT: Pipeline production COMPLET opérationnel
-DERNIÈRE_MISE_À_JOUR: 2025-11-05 - Workflow avec ImageMagick
-ARCHITECTURE_FONCTIONNELLE:
-  ✅ human_input/script_approved.txt → Script quotidien
-  ✅ assets_library/music/ → 7 musiques snowfall rotation aléatoire
-  ✅ auto_assembly/audio_generator.py → TTS avec fallback GitHub
-  ✅ auto_assembly/video_builder.py → Montage avec ImageMagick texte
-  ✅ GitHub Actions → Production automatisée quotidienne
-
-FONCTIONNALITÉS_ACTIVES:
-  - Génération audio TTS (Edge TTS local / Fallback GitHub)
-  - Sélection aléatoire musique snowfall
-  - Montage vidéo 1080x1920 format Shorts
-  - Texte vectoriel via ImageMagick (titres + compte à rebours)
-  - Export MP4 avec audio mixé
-  - Artifacts téléchargeables automatiques
-
-CONFIGURATION_TECHNIQUE:
-  - Python 3.11 + MoviePy 1.0.3
-  - FFmpeg + ImageMagick installés
-  - Dépendances: edge-tts, pillow, numpy, etc.
-  - Workflow déclenchable manuel ou auto 8h
-
-PROCHAINES_AMÉLIORATIONS:
-  - Upload automatique YouTube
-  - Assets images/GIFs curated
-  - Templates de script variables
-  - Analytics performance vidéos
-
-BRANCH: main
-COMMIT_RÉCENT: Workflow avec ImageMagick
-
+STATUT: Solution Pillow implémentée - Texte fiable sur GitHub
+DERNIÈRE_MISE_À_JOUR: 2025-11-05 - Pillow remplace ImageMagick
+SOLUTION_TEXTE: Pillow + ImageClip (fiable, pas de restrictions)
+FONCTIONNALITÉS:
+  - Texte basique (chiffres, titres)
+  - Polices système DejaVu/Liberation
+  - Positionnement centré automatique
+  - Séquence titre + compte à rebours
+AVANTAGE: Plus de blocages politiques sécurité
 
 REPRENDS EXACTEMENT où on en était sans redondance.
