@@ -70,17 +70,17 @@ def validate_assets():
     return True
 
 async def generate_audio_content(script):
-    """Génère le fichier audio TTS"""
+    """Génère le fichier audio TTS avec le nouveau système"""
     try:
         audio_gen = AudioGenerator()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         audio_file = f"voiceover_{timestamp}.wav"
         
-        print("🔊 Génération TTS en cours...")
+        print("🔊 Génération TTS avec retry...")
         audio_path = await audio_gen.generate_audio(script, audio_file)
         
         if audio_path and os.path.exists(audio_path):
-            file_size = os.path.getsize(audio_path) / 1024  # KB
+            file_size = os.path.getsize(audio_path) / 1024
             print(f"✅ Audio généré: {os.path.basename(audio_path)} ({file_size:.1f} KB)")
             return audio_path
         else:
@@ -102,7 +102,7 @@ def create_video_content(audio_path, music_path):
         video_path = video_builder.create_video(audio_path, music_path, output_name)
         
         if video_path and os.path.exists(video_path):
-            file_size = os.path.getsize(video_path) / (1024 * 1024)  # MB
+            file_size = os.path.getsize(video_path) / (1024 * 1024)
             print(f"✅ Vidéo créée: {os.path.basename(video_path)} ({file_size:.1f} MB)")
             return video_path
         else:
