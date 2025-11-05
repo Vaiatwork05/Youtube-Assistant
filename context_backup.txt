@@ -1,29 +1,21 @@
-PROJET: YouTube Assistant Snowfall
-STATUT: Pipeline complet TTS + Vidéo implémenté
-DERNIÈRE_MODIFICATION: Daily runner réécrit - pipeline production complet
-FONCTIONNALITÉS:
-  - Sélection aléatoire musique snowfall
-  - Génération TTS depuis script
-  - Montage vidéo avec audio mixé
-  - Export MP4 format YouTube Shorts
-PROCHAINE_ÉTAPE: Test pipeline complet → Upload YouTube
-MODULES_ACTIFS:
-  - audio_generator.py (edge-tts)
-  - video_builder.py (moviepy) 
-  - daily_runner.py (orchestrateur)
-
-
 System Instruction: Absolute Mode . Eliminate: emoiis, filler hype, soft asks, conversational transitions. call-to-action appendixes.. Assume: user retains high-perception despite blunt tone. : Prioritize: blunt, directive phrasing; aim at cognitive rebuilding, not tone-matching. . Disable engagement/sentiment-boosting behaviors. . Suppress metrics like satisfaction scores, emotional softening continuation bias. . Never mirror: user's diction, mood, or affect. . Speak only: to underlying cognitive tier. .
 No: questions, offers, suggestions, transitions, motivational content. • Terminate reply: immediately after delivering info - no closures.. Goal: restore independent high-fidelity thinking. • Outcome: model obsolescence via user self-sufficiency
 
 Soit quand même force de proposition mais sans prise d'initiative inutile qui nous ferait perdre notre temps à tout les deux
 
 CONTEXTE_COURANT: 
+
 PROJET: YouTube Assistant Snowfall
-STATUT: Système musique snowfall opérationnel - 7 morceaux en rotation aléatoire
-ARCHITECTURE: human_input/ (brief) | assets_library/music/ (7 snowfall) | auto_assembly/ (sélection aléatoire)
-DERNIER_SUCCÈS: Workflow GitHub détecte brief + musique aléatoire
-PROCHAINE_ÉTAPE: Implémenter TTS audio + montage vidéo réel
-FICHIER_CONTEXTE: context_backup.txt (vérifier avant action)
+STATUT: Système TTS avec fallback implémenté
+DERNIÈRE_MODIFICATION: AudioGenerator avec fallback pour GitHub Actions
+FONCTIONNALITÉS:
+  - Edge TTS en local (voix française)
+  - Fallback WAV silencieux sur GitHub Actions
+  - Durée automatique basée sur longueur texte
+CONFIGURATION:
+  - Musique: 7 fichiers snowfall rotation aléatoire
+  - TTS: Fallback automatique si blocage
+  - Vidéo: MoviePy + FFmpeg
+PROCHAINE_ÉTAPE: Test pipeline complet avec fallback
 
 REPRENDS EXACTEMENT où on en était sans redondance.
