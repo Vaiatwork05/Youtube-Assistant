@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Montage Vidéo pour YouTube Assistant
+Montage Vidéo avec ImageMagick pour le texte
 """
 
 import os
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, TextClip, ColorClip, CompositeAudioClip
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, ColorClip, CompositeAudioClip, TextClip
 
 class VideoBuilder:
     def __init__(self):
@@ -12,7 +12,7 @@ class VideoBuilder:
         os.makedirs(self.output_dir, exist_ok=True)
     
     def create_video(self, audio_path, music_path, output_name):
-        """Crée une vidéo avec audio TTS et musique d'ambiance"""
+        """Crée une vidéo avec texte via ImageMagick"""
         try:
             print(f"🎬 Chargement audio: {os.path.basename(audio_path)}")
             print(f"🎵 Chargement musique: {os.path.basename(music_path)}")
@@ -21,35 +21,61 @@ class VideoBuilder:
             voice_audio = AudioFileClip(audio_path)
             background_music = AudioFileClip(music_path)
             
-            # Adapte la musique à la durée de la voix
+            # Adapte la musique
             music_duration = voice_audio.duration
             background_music = background_music.subclip(0, music_duration)
-            background_music = background_music.volumex(0.3)  # Réduit le volume
+            background_music = background_music.volumex(0.3)
             
             print(f"⏱️ Durée audio: {music_duration:.1f}s")
             
-            # Mixe les deux pistes audio
+            # Mixe les pistes audio
             final_audio = CompositeAudioClip([voice_audio, background_music])
             
-            # Crée un fond vidéo simple (écran noir avec titre)
-            video_clip = ColorClip(
-                size=(1080, 1920),  # Format vertical YouTube Shorts
-                color=(0, 0, 0),    # Fond noir
+            # Crée la séquence vidéo avec texte
+            video_clips = []
+            
+            # Titre (5 premières secondes)
+            if music_duration > 5:
+                title_clip = TextClip(
+                    "3 RÉVÉLATIONS SURPRENANTES",
+                    fontsize=70,
+                    color='white',
+                    font='Arial-Bold',
+                    stroke_color='black',
+                    stroke_width=2
+                )
+                title_clip = title_clip.set_position('center').set_duration(5)
+                video_clips.append(title_clip)
+            
+            # Compte à rebours 3, 2, 1
+            remaining_time = music_duration - 5
+            countdown_duration = min(2, remaining_time / 3) if remaining_time > 0 else 0
+            
+            start_time = 5
+            for number in [3, 2, 1]:
+                if remaining_time >= countdown_duration:
+                    number_clip = TextClip(
+                        str(number),
+                        fontsize=300,
+                        color='white',
+                        font='Arial-Bold',
+                        stroke_color='black', 
+                        stroke_width=4
+                    )
+                    number_clip = number_clip.set_position('center').set_start(start_time).set_duration(countdown_duration)
+                    video_clips.append(number_clip)
+                    start_time += countdown_duration
+                    remaining_time -= countdown_duration
+            
+            # Fond noir principal
+            main_video = ColorClip(
+                size=(1080, 1920),
+                color=(0, 0, 0),
                 duration=music_duration
             )
             
-            # Ajoute un titre basique
-            title = "Révélations Surprenantes"
-            txt_clip = TextClip(
-                title, 
-                fontsize=70, 
-                color='white',
-                font='Arial-Bold'
-            )
-            txt_clip = txt_clip.set_position('center').set_duration(min(5, music_duration))
-            
-            # Assemble la vidéo
-            final_video = CompositeVideoClip([video_clip, txt_clip])
+            # Assemble tout
+            final_video = CompositeVideoClip([main_video] + video_clips)
             final_video = final_video.set_audio(final_audio)
             
             # Export
@@ -76,21 +102,18 @@ class VideoBuilder:
             return None
 
 def test_video_builder():
-    """Test basique du montage vidéo"""
+    """Test du montage vidéo avec ImageMagick"""
     builder = VideoBuilder()
     
-    # Chemins de test
-    test_audio = "output/audio/voiceover_20251105_1252.wav"  # Fichier existant
+    test_audio = "output/audio/voiceover_20251105_1303.wav"
     test_music = "assets_library/music/snowfall_ambiance_1.mp3"
     
     if os.path.exists(test_audio) and os.path.exists(test_music):
-        print("🧪 Test VideoBuilder...")
-        result = builder.create_video(test_audio, test_music, "test_video")
+        print("🧪 Test VideoBuilder avec ImageMagick...")
+        result = builder.create_video(test_audio, test_music, "test_video_imagemagick")
         return result
     else:
         print("❌ Fichiers de test manquants")
-        print(f"Audio existe: {os.path.exists(test_audio)}")
-        print(f"Musique existe: {os.path.exists(test_music)}")
         return None
 
 if __name__ == "__main__":
