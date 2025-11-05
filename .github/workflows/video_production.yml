@@ -18,25 +18,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y festival festvox-fr festival-french espeak-ng ffmpeg
+          
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           pip install moviepy pillow numpy opencv-python
-        
-      - name: Parse script data
+          
+      - name: Save script data
         run: |
           echo '${{ github.event.inputs.script_data }}' > selected_script.json
-          cat selected_script.json
+          echo "📄 Script ID: ${{ github.event.inputs.script_id }}"
           
-      - name: Generate TTS audio
+      - name: Generate TTS audio (Free)
         run: |
-          python auto_assembly/tts_generator.py
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          python auto_assembly/audio_generator.py
           
       - name: Build video
         run: |
@@ -49,10 +52,13 @@ jobs:
           path: output/videos/
           retention-days: 7
 
-      - name: Create release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         if: success()
         with:
           files: output/videos/*.mp4
           tag_name: video-${{ github.run_id }}
-          body: "Video produite automatiquement - Script ${{ github.event.inputs.script_id }}"
+          body: |
+            Video produite automatiquement
+            - Script: ${{ github.event.inputs.script_id }}
+            - Date: ${{ github.event.inputs.script_data.created_at || github.run_started_at }}
