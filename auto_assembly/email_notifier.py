@@ -11,8 +11,8 @@ from datetime import datetime
 class EmailNotifier:
     def __init__(self):
         self.api_key = os.getenv('SENDGRID_API_KEY')
-        self.from_email = os.getenv('FROM_EMAIL', 'vaitea.atwork@gmail.com')
-        self.to_email = os.getenv('TO_EMAIL', 'vaitea.atwork@gmail.com')
+        self.from_email = "vaitea.atwork@gmail.com"
+        self.to_email = "vaiatwork05@gmail.com"
         
     def send_script_approval(self, scripts):
         """Envoie l'email avec les scripts"""
@@ -33,6 +33,7 @@ class EmailNotifier:
             "Content-Type": "application/json"
         }
         
+        print("📤 Envoi de l'email...")
         response = requests.post(
             "https://api.sendgrid.com/v3/mail/send",
             headers=headers,
@@ -44,7 +45,7 @@ class EmailNotifier:
             return True
         else:
             print(f"❌ Erreur email: {response.status_code}")
-            print(response.text)
+            print(f"📄 Détails: {response.text}")
             return False
     
     def _build_email_content(self, scripts):
@@ -86,15 +87,21 @@ def main():
     try:
         with open('scripts.json', 'r', encoding='utf-8') as f:
             scripts = json.load(f)
+        print("✅ Scripts chargés depuis scripts.json")
     except FileNotFoundError:
-        print("❌ Fichier scripts.json non trouvé")
-        return
+        print("❌ Fichier scripts.json non trouvé - utilisation de scripts de test")
+        scripts = [
+            {
+                "title": "SCRIPT DE TEST",
+                "content": "• Ceci est un script de test\n• Généré car le fichier était manquant\n• Vérifie la génération automatique"
+            }
+        ]
     
     notifier = EmailNotifier()
     success = notifier.send_script_approval(scripts)
     
     if not success:
-        exit(1)  # Échec du workflow
+        exit(1)
 
 if __name__ == "__main__":
     main()
