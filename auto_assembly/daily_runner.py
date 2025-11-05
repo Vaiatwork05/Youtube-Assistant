@@ -1,13 +1,18 @@
+
 #!/usr/bin/env python3
 """
-YouTube Assistant - Runner Quotidien
-Version avec gestion musique snowfall
+YouTube Assistant - Runner avec TTS
 """
 
 import os
 import sys
 import random
+import asyncio
 from datetime import datetime
+
+# Import du nouveau module TTS
+sys.path.append(os.path.dirname(__file__))
+from audio_generator import AudioGenerator
 
 def get_random_snowfall_music():
     """Retourne une musique snowfall aléatoire"""
@@ -16,62 +21,86 @@ def get_random_snowfall_music():
         music_files = [f for f in os.listdir(music_dir) if f.endswith(('.mp3', '.wav'))]
         if music_files:
             selected = random.choice(music_files)
-            print(f"Musique selectionnee: {selected}")
+            print(f"Musique sélectionnée: {selected}")
             return os.path.join(music_dir, selected)
     print("Aucune musique snowfall disponible")
     return None
 
-def test_assets():
-    """Teste tous les assets disponibles"""
-    print("=== TEST ASSETS ===")
-    
-    # Test musiques
-    music_dir = "assets_library/music"
-    if os.path.exists(music_dir):
-        music_files = os.listdir(music_dir)
-        print(f"Musiques snowfall: {len(music_files)}")
-        for music in music_files:
-            print(f"  🎵 {music}")
-    else:
-        print("❌ Dossier musique manquant")
-        return False
-    
-    # Test brief
-    brief_path = "human_input/daily_brief.txt"
-    if os.path.exists(brief_path):
-        with open(brief_path, 'r') as f:
-            brief = f.read().strip()
-        print(f"Brief: {brief}")
-        return True
-    else:
-        print("❌ Brief quotidien manquant")
-        return False
+def get_daily_script():
+    """Récupère le script validé"""
+    script_path = "human_input/script_approved.txt"
+    if os.path.exists(script_path):
+        with open(script_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    return None
 
-def main():
-    print("YouTube Assistant - Systeme Snowfall")
-    print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+async def generate_daily_content():
+    """Génère le contenu audio du jour"""
+    print("=== GÉNÉRATION CONTENU QUOTIDIEN ===")
     
-    # Test assets
-    if not test_assets():
+    # 1. Récupération inputs
+    musique = get_random_snowfall_music()
+    script = get_daily_script()
+    
+    if not script:
+        print("❌ Aucun script disponible")
         return False
     
-    # Selection musique pour aujourd'hui
-    musique_du_jour = get_random_snowfall_music()
-    if musique_du_jour:
-        print(f"Musique du jour: {os.path.basename(musique_du_jour)}")
-    else:
-        print("❌ Erreur selection musique")
+    if not musique:
+        print("❌ Aucune musique disponible")
         return False
     
-    print("✅ Pret pour generation video")
+    print(f"Script: {len(script)} caractères")
+    print(f"Musique: {os.path.basename(musique)}")
+    
+    # 2. Génération audio TTS
+    audio_gen = AudioGenerator()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    audio_file = f"voiceover_{timestamp}.wav"
+    
+    print("Génération TTS en cours...")
+    audio_path = await audio_gen.generate_audio(script, audio_file)
+    
+    if not audio_path:
+        print("❌ Échec génération audio")
+        return False
+    
+    print(f"✅ Audio généré: {os.path.basename(audio_path)}")
     return True
 
-if __name__ == "__main__":
+def main():
+    print("YouTube Assistant - Génération TTS")
+    print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Vérification assets
+    if not os.path.exists("human_input/script_approved.txt"):
+        print("❌ Script manquant - création template...")
+        create_template_script()
+        return False
+    
+    # Génération contenu
     try:
-        success = main()
-        sys.exit(0 if success else 1)
+        success = asyncio.run(generate_daily_content())
+        return success
     except Exception as e:
-        print(f"ERREUR: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+        print(f"❌ Erreur génération: {e}")
+        return False
+
+def create_template_script():
+    """Crée un template de script si manquant"""
+    template = """TITRE: 3 Révélations Surprenantes Aujourd'hui
+
+POINT 1: Une découverte étonnante qui change tout
+POINT 2: La vérité cachée derrière les apparences  
+POINT 3: Ce que personne ne veut que vous sachiez
+
+CTA: Likez pour la partie 2!
+"""
+    os.makedirs("human_input", exist_ok=True)
+    with open("human_input/script_approved.txt", "w", encoding='utf-8') as f:
+        f.write(template)
+    print("✅ Template script créé dans human_input/")
+
+if __name__ == "__main__":
+    success = main()
+    sys.exit(0 if success else 1)
