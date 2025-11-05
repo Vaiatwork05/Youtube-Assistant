@@ -3,13 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       script_id:
-        description: 'Script ID (0, 1, 2)'
+        description: 'Script ID'
         required: true
-        type: choice
-        options:
-        - 0
-        - 1  
-        - 2
+        type: string
       script_data:
         description: 'Script data JSON'
         required: true
@@ -19,20 +15,44 @@ jobs:
   produce-video:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
+      - name: Install dependencies
+        run: |
+          pip install moviepy pillow numpy opencv-python
+        
       - name: Parse script data
-        id: script
         run: |
-          echo "SCRIPT_DATA=${{ github.event.inputs.script_data }}" >> $GITHUB_OUTPUT
+          echo '${{ github.event.inputs.script_data }}' > selected_script.json
+          cat selected_script.json
           
-      - name: Produce video
+      - name: Generate TTS audio
         run: |
-          echo "🎬 Production vidéo pour script ${{ github.event.inputs.script_id }}"
-          echo "📄 Données: ${{ steps.script.outputs.SCRIPT_DATA }}"
-          # Ici: ton code de production vidéo existant
+          python auto_assembly/tts_generator.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          
+      - name: Build video
+        run: |
+          python auto_assembly/video_builder.py
+          
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: produced-video-${{ github.run_id }}
+          path: output/videos/
+          retention-days: 7
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        if: success()
+        with:
+          files: output/videos/*.mp4
+          tag_name: video-${{ github.run_id }}
+          body: "Video produite automatiquement - Script ${{ github.event.inputs.script_id }}"
