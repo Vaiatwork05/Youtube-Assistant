@@ -2,3 +2,7 @@ moviepy>=1.0.3
 requests>=2.25.1
 edge-tts>=6.1.0
 imageio[ffmpeg]>=2.31.0
+decorator>=4.4.2
+numpy>=1.21.0
+pillow>=9.0.0
+proglog<=0.1.9
