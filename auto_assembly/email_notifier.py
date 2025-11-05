@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Email Notifier - Version GitHub Actions
+Email Notifier - Version avec déclenchement direct GitHub
 """
 
 import os
 import json
 import requests
+import urllib.parse
 from datetime import datetime
 
 class EmailNotifier:
@@ -22,7 +23,7 @@ class EmailNotifier:
         data = {
             "personalizations": [{
                 "to": [{"email": self.to_email}],
-                "subject": f"🎬 Scripts du {datetime.now().strftime('%d/%m/%Y')}"
+                "subject": f"Scripts YouTube - {datetime.now().strftime('%d/%m/%Y')}"
             }],
             "from": {"email": self.from_email},
             "content": [{"type": "text/html", "value": html_content}]
@@ -33,43 +34,46 @@ class EmailNotifier:
             "Content-Type": "application/json"
         }
         
-        print("📤 Envoi de l'email...")
         response = requests.post(
             "https://api.sendgrid.com/v3/mail/send",
             headers=headers,
             data=json.dumps(data)
         )
         
-        if response.status_code == 202:
-            print("✅ Email envoyé avec succès")
-            return True
+        success = response.status_code == 202
+        if success:
+            print("Email envoyé")
         else:
-            print(f"❌ Erreur email: {response.status_code}")
-            print(f"📄 Détails: {response.text}")
-            return False
+            print(f"Erreur email: {response.status_code} - {response.text}")
+        
+        return success
     
     def _build_email_content(self, scripts):
-        """Construit le contenu HTML"""
+        """Construit le contenu HTML avec liens de déclenchement direct"""
         
-        html = f"""
+        html = """
         <html>
         <body style="font-family: Arial; margin: 20px; background: #f5f5f5;">
             <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px;">
                 <div style="background: #4CAF50; color: white; padding: 20px; border-radius: 5px; text-align: center;">
-                    <h1>🎬 NOUVEAUX SCRIPTS DISPONIBLES</h1>
-                    <p>Date: {datetime.now().strftime('%d/%m/%Y')}</p>
+                    <h1>Scripts YouTube - Validation</h1>
+                    <p>Date: """ + datetime.now().strftime('%d/%m/%Y') + """</p>
                 </div>
         """
         
         for i, script in enumerate(scripts):
+            # URL de déclenchement direct GitHub
+            script_json = urllib.parse.quote(json.dumps(script))
+            approve_url = f"https://github.com/Vaiatwork05/Youtube-Assistant/actions/workflows/video_production.yml?inputs=script_id={i}&script_data={script_json}"
+            
             html += f"""
                 <div style="border: 2px solid #4CAF50; padding: 15px; margin: 15px 0; border-radius: 10px;">
                     <h3>Option {i+1}: {script['title']}</h3>
                     <div style="color: #666; line-height: 1.5; margin: 10px 0; white-space: pre-line;">{script['content']}</div>
-                    <a href="https://github.com/Vaiatwork05/Youtube-Assistant/actions/workflows/video_production.yml" 
+                    <a href="{approve_url}" 
                        style="display: block; padding: 12px; background: #4CAF50; color: white; text-align: center; 
                               text-decoration: none; border-radius: 5px; font-weight: bold;">
-                        ✅ CHOISIR CE SCRIPT
+                        Produire cette vidéo
                     </a>
                 </div>
             """
@@ -87,13 +91,13 @@ def main():
     try:
         with open('scripts.json', 'r', encoding='utf-8') as f:
             scripts = json.load(f)
-        print("✅ Scripts chargés depuis scripts.json")
+        print("Scripts chargés depuis scripts.json")
     except FileNotFoundError:
-        print("❌ Fichier scripts.json non trouvé - utilisation de scripts de test")
+        print("Fichier scripts.json non trouvé - utilisation de scripts de test")
         scripts = [
             {
-                "title": "SCRIPT DE TEST",
-                "content": "• Ceci est un script de test\n• Généré car le fichier était manquant\n• Vérifie la génération automatique"
+                "title": "Script Test",
+                "content": "Contenu de test pour validation"
             }
         ]
     
