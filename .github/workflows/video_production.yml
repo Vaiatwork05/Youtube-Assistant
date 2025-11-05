@@ -30,7 +30,7 @@ jobs:
           
       - name: Install Python dependencies
         run: |
-          pip install moviepy pillow numpy opencv-python imageio-ffmpeg
+          pip install --force-reinstall moviepy pillow numpy opencv-python imageio-ffmpeg
           
       - name: Save script data
         run: |
@@ -50,3 +50,4 @@ jobs:
         with:
           name: produced-video-${{ github.run_id }}
           path: output/videos/
+
