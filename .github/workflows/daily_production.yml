@@ -10,54 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout du code
+      - name: 📥 Checkout
         uses: actions/checkout@v4
         
-      - name: 🐍 Configuration Python
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
-      - name: 🛠️ Installation FFmpeg + ImageMagick
+      - name: 🛠️ Install FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg imagemagick
-          echo "✅ FFmpeg version: $(ffmpeg -version | head -1)"
-          echo "✅ ImageMagick version: $(convert -version | head -1)"
+          sudo apt-get install -y ffmpeg
           
-      - name: 🔧 Configuration ImageMagick
-        run: |
-          # Autorise ImageMagick à lire/écrire des fichiers texte
-          sudo cp /etc/ImageMagick-6/policy.xml /etc/ImageMagick-6/policy.xml.backup
-          sudo sed -i 's/rights="none" pattern="PDF"/rights="read | write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml
-          sudo sed -i 's/rights="none" pattern="LABEL"/rights="read | write" pattern="LABEL"/' /etc/ImageMagick-6/policy.xml
-          sudo sed -i 's/rights="none" pattern="TEXT"/rights="read | write" pattern="TEXT"/' /etc/ImageMagick-6/policy.xml
-          sudo sed -i 's/pattern="PS"/rights="none" pattern="PS"/' /etc/ImageMagick-6/policy.xml
-          echo "✅ Politique ImageMagick modifiée"
-          
-      - name: 📦 Installation dépendances Python
+      - name: 📦 Install dependencies
         run: |
           pip install -r requirements.txt
           
-      - name: 🎬 Production Vidéo Quotidienne
+      - name: 🎬 Production Video
         run: |
           python auto_assembly/daily_runner.py
           
-      - name: 📤 Téléversement Résultats
+      - name: 📤 Upload Artifacts
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: production-jour-${{ github.run_id }}
+          name: production-output
           path: output/
-          retention-days: 3
-
-      - name: 📊 Rapport Final
-        if: always()
-        run: |
-          echo "=== RAPPORT PRODUCTION ==="
-          echo "Date: $(date)"
-          if [ -d "output/videos" ]; then
-            echo "✅ Vidéos produites: $(find output/videos -name "*.mp4" | wc -l)"
-          else
-            echo "❌ Aucune vidéo produite"
-          fi
