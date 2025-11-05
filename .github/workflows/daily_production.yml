@@ -2,8 +2,8 @@ name: 🎬 Production Quotidienne Snowfall
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # 8h du matin
-  workflow_dispatch:      # Déclenchement manuel
+    - cron: '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
   produce:
@@ -25,11 +25,19 @@ jobs:
           echo "✅ FFmpeg version: $(ffmpeg -version | head -1)"
           echo "✅ ImageMagick version: $(convert -version | head -1)"
           
+      - name: 🔧 Configuration ImageMagick
+        run: |
+          # Autorise ImageMagick à lire/écrire des fichiers texte
+          sudo cp /etc/ImageMagick-6/policy.xml /etc/ImageMagick-6/policy.xml.backup
+          sudo sed -i 's/rights="none" pattern="PDF"/rights="read | write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml
+          sudo sed -i 's/rights="none" pattern="LABEL"/rights="read | write" pattern="LABEL"/' /etc/ImageMagick-6/policy.xml
+          sudo sed -i 's/rights="none" pattern="TEXT"/rights="read | write" pattern="TEXT"/' /etc/ImageMagick-6/policy.xml
+          sudo sed -i 's/pattern="PS"/rights="none" pattern="PS"/' /etc/ImageMagick-6/policy.xml
+          echo "✅ Politique ImageMagick modifiée"
+          
       - name: 📦 Installation dépendances Python
         run: |
           pip install -r requirements.txt
-          echo "✅ Dépendances installées:"
-          pip list | grep -E "(moviepy|edge|requests|pillow)"
           
       - name: 🎬 Production Vidéo Quotidienne
         run: |
@@ -40,28 +48,16 @@ jobs:
         if: always()
         with:
           name: production-jour-${{ github.run_id }}
-          path: |
-            output/
+          path: output/
           retention-days: 3
-          compression-level: 0
 
       - name: 📊 Rapport Final
         if: always()
         run: |
           echo "=== RAPPORT PRODUCTION ==="
-          echo "🕐 Date: $(date)"
-          echo "🎯 Workflow: ${{ github.workflow }}"
-          echo "🆔 Run ID: ${{ github.run_id }}"
-          
+          echo "Date: $(date)"
           if [ -d "output/videos" ]; then
-            video_count=$(find output/videos -name "*.mp4" | wc -l)
-            echo "📹 Vidéos produites: $video_count"
-            find output/videos -name "*.mp4" -exec echo "   🎬 {}" \;
+            echo "✅ Vidéos produites: $(find output/videos -name "*.mp4" | wc -l)"
           else
-            echo "📹 Aucune vidéo produite"
-          fi
-          
-          if [ -d "output/audio" ]; then
-            audio_count=$(find output/audio -name "*.wav" | wc -l)
-            echo "🔊 Audios générés: $audio_count"
+            echo "❌ Aucune vidéo produite"
           fi
