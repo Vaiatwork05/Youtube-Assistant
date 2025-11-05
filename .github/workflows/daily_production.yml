@@ -1,43 +1,38 @@
-name: Daily Script Generation
+name: Video Production
 on:
-  schedule:
-    - cron: '0 8 * * *'  # 8h du matin UTC
-  workflow_dispatch:      # Déclenchement manuel
+  workflow_dispatch:
+    inputs:
+      script_id:
+        description: 'Script ID (0, 1, 2)'
+        required: true
+        type: choice
+        options:
+        - 0
+        - 1  
+        - 2
+      script_data:
+        description: 'Script data JSON'
+        required: true
+        type: string
 
 jobs:
-  generate-and-notify:
+  produce-video:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
+      - uses: actions/checkout@v4
+      
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
-      - name: Install dependencies
+      - name: Parse script data
+        id: script
         run: |
-          pip install requests
-
-      - name: Create scripts directory
-        run: |
-          mkdir -p auto_assembly
+          echo "SCRIPT_DATA=${{ github.event.inputs.script_data }}" >> $GITHUB_OUTPUT
           
-      - name: Generate scripts
+      - name: Produce video
         run: |
-          cd auto_assembly
-          python script_generator.py
-          
-      - name: Send email notification
-        run: |
-          cd auto_assembly
-          python email_notifier.py
-        env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          
-      - name: Show generated files
-        run: |
-          ls -la auto_assembly/
-          echo "=== SCRIPTS.JSON CONTENT ==="
-          cat auto_assembly/scripts.json || echo "Fichier scripts.json non trouvé"
+          echo "🎬 Production vidéo pour script ${{ github.event.inputs.script_id }}"
+          echo "📄 Données: ${{ steps.script.outputs.SCRIPT_DATA }}"
+          # Ici: ton code de production vidéo existant
