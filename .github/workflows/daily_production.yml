@@ -1,39 +1,67 @@
-name: Production Quotidienne Snowfall
+name: 🎬 Production Quotidienne Snowfall
 
 on:
   schedule:
-    - cron: '0 8 * * *'
-  workflow_dispatch:
+    - cron: '0 8 * * *'  # 8h du matin
+  workflow_dispatch:      # Déclenchement manuel
 
 jobs:
   produce:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout du code
         uses: actions/checkout@v4
         
-      - name: 🐍 Setup Python
+      - name: 🐍 Configuration Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
-      - name: 🛠️ Install FFmpeg
+      - name: 🛠️ Installation FFmpeg + ImageMagick
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg imagemagick
+          echo "✅ FFmpeg version: $(ffmpeg -version | head -1)"
+          echo "✅ ImageMagick version: $(convert -version | head -1)"
           
-      - name: 📦 Install dependencies
+      - name: 📦 Installation dépendances Python
         run: |
           pip install -r requirements.txt
+          echo "✅ Dépendances installées:"
+          pip list | grep -E "(moviepy|edge|requests|pillow)"
           
-      - name: 🎬 Production Video
+      - name: 🎬 Production Vidéo Quotidienne
         run: |
           python auto_assembly/daily_runner.py
           
-      - name: 📊 Upload Artifacts
+      - name: 📤 Téléversement Résultats
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: production-output
-          path: output/
+          name: production-jour-${{ github.run_id }}
+          path: |
+            output/
+          retention-days: 3
+          compression-level: 0
+
+      - name: 📊 Rapport Final
+        if: always()
+        run: |
+          echo "=== RAPPORT PRODUCTION ==="
+          echo "🕐 Date: $(date)"
+          echo "🎯 Workflow: ${{ github.workflow }}"
+          echo "🆔 Run ID: ${{ github.run_id }}"
+          
+          if [ -d "output/videos" ]; then
+            video_count=$(find output/videos -name "*.mp4" | wc -l)
+            echo "📹 Vidéos produites: $video_count"
+            find output/videos -name "*.mp4" -exec echo "   🎬 {}" \;
+          else
+            echo "📹 Aucune vidéo produite"
+          fi
+          
+          if [ -d "output/audio" ]; then
+            audio_count=$(find output/audio -name "*.wav" | wc -l)
+            echo "🔊 Audios générés: $audio_count"
+          fi
