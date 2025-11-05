@@ -1,7 +1,7 @@
 name: Daily Script Generation
 on:
   schedule:
-    - cron: '0 8 * * *'  # 8h du matin
+    - cron: '0 8 * * *'  # 8h du matin UTC
   workflow_dispatch:      # Déclenchement manuel
 
 jobs:
@@ -10,9 +10,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          
+        
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -20,11 +18,16 @@ jobs:
           
       - name: Install dependencies
         run: |
-          pip install requests python-dotenv
+          pip install requests
+
+      - name: Create scripts directory
+        run: |
+          mkdir -p auto_assembly
           
       - name: Generate scripts
         run: |
-          python auto_assembly/script_generator.py
+          cd auto_assembly
+          python script_generator.py
           
       - name: Send email notification
         run: |
@@ -32,13 +35,9 @@ jobs:
           python email_notifier.py
         env:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          FROM_EMAIL: "vaitea.atwork@gmail.com"
-          TO_EMAIL: "vaiatwork05@gmail.com"
           
-      - name: Commit generated scripts
+      - name: Show generated files
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add auto_assembly/scripts.json
-          git commit -m "Add generated scripts for $(date +'%Y-%m-%d')" || exit 0
-          git push
+          ls -la auto_assembly/
+          echo "=== SCRIPTS.JSON CONTENT ==="
+          cat auto_assembly/scripts.json || echo "Fichier scripts.json non trouvé"
