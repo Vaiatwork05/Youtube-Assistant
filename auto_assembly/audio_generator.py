@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 TTS 100% gratuit - Festival + eSpeak fallback
+Version GitHub Actions
 """
 
 import os
@@ -15,9 +16,9 @@ class FreeTTSGenerator:
     def generate_audio(self, text, output_filename):
         """Génère audio avec solutions 100% gratuites"""
         
-        # Essaie Festival d'abord (meilleure qualité)
         output_path = os.path.join(self.output_dir, output_filename)
         
+        # Essaie Festival d'abord
         if self._try_festival(text, output_path):
             print("✅ Audio généré avec Festival TTS")
             return output_path
@@ -27,43 +28,49 @@ class FreeTTSGenerator:
             print("✅ Audio généré avec eSpeak TTS")
             return output_path
             
-        # Dernier recours: fichier silencieux
-        print("❌ TTS gratuit échoué, fallback silencieux")
-        return self._create_silent_audio(output_path, duration=30)
+        # Dernier recours
+        print("🔶 Fallback: audio silencieux")
+        return self._create_silent_audio(output_path)
     
     def _try_festival(self, text, output_path):
         """Tente Festival TTS"""
         try:
-            # Nettoie le texte pour shell
-            clean_text = text.replace('"', '\\"').replace('$', '\\$')
-            
+            clean_text = text.replace('"', '\\"').replace('$', '\\$')[:100]
             cmd = f'echo "{clean_text}" | text2wave -o {output_path}'
             result = subprocess.run(cmd, shell=True, capture_output=True, timeout=30)
             
-            return result.returncode == 0 and os.path.exists(output_path)
-        except:
+            if result.returncode == 0 and os.path.exists(output_path):
+                file_size = os.path.getsize(output_path) / 1024
+                print(f"📊 Festival: {file_size:.1f} KB")
+                return True
+            return False
+        except Exception as e:
+            print(f"❌ Festival failed: {e}")
             return False
     
     def _try_espeak(self, text, output_path):
         """Tente eSpeak TTS"""
         try:
-            clean_text = text.replace('"', '\\"')
+            clean_text = text.replace('"', '\\"')[:100]
             cmd = f'espeak-ng -v fr-fr "{clean_text}" --stdout > {output_path}'
             result = subprocess.run(cmd, shell=True, capture_output=True, timeout=30)
             
-            return result.returncode == 0 and os.path.exists(output_path)
-        except:
+            if result.returncode == 0 and os.path.exists(output_path):
+                file_size = os.path.getsize(output_path) / 1024
+                print(f"📊 eSpeak: {file_size:.1f} KB")
+                return True
+            return False
+        except Exception as e:
+            print(f"❌ eSpeak failed: {e}")
             return False
     
-    def _create_silent_audio(self, output_path, duration=30):
+    def _create_silent_audio(self, output_path):
         """Crée fichier audio silencieux"""
         try:
-            # Utilise ffmpeg pour créer silence
-            cmd = f'ffmpeg -f lavfi -i anullsrc=channel_layout=mono:sample_rate=22050 -t {duration} {output_path} -y'
+            cmd = f'ffmpeg -f lavfi -i anullsrc=channel_layout=mono:sample_rate=22050 -t 45 {output_path} -y'
             subprocess.run(cmd, shell=True, capture_output=True)
             return output_path
         except:
-            # Fallback basique
             open(output_path, 'wb').close()
             return output_path
 
@@ -77,11 +84,11 @@ def main():
         text = script_data['content'][:100]  # Texte court
         audio_path = generator.generate_audio(text, "generated_tts.wav")
         
-        print(f"📁 Audio généré: {audio_path}")
+        print(f"🎯 Audio final: {audio_path}")
         return True
         
     except Exception as e:
-        print(f"❌ Erreur: {e}")
+        print(f💥 Erreur: {e}")
         return False
 
 if __name__ == "__main__":
