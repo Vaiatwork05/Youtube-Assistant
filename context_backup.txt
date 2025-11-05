@@ -1,22 +1,16 @@
 PROJET: YouTube Assistant Snowfall
-STATUT: Système musique snowfall opérationnel
-CONFIGURATION_MUSIQUE:
-  - 7 morceaux snowfall vibe
-  - Rotation aléatoire automatique
-  - Vibe uniforme melancholique/ambiance
-  - Zero décision humaine
-DERNIERS_SUCCÈS:
-  - Workflow GitHub exécute daily_runner.py
-  - Détection brief quotidien
+STATUT: Pipeline complet TTS + Vidéo implémenté
+DERNIÈRE_MODIFICATION: Daily runner réécrit - pipeline production complet
+FONCTIONNALITÉS:
   - Sélection aléatoire musique snowfall
-  - Architecture complète validée
-PROCHAINE_ÉTAPE: Implémenter TTS audio et montage vidéo
-MODULES_À_CRÉER:
+  - Génération TTS depuis script
+  - Montage vidéo avec audio mixé
+  - Export MP4 format YouTube Shorts
+PROCHAINE_ÉTAPE: Test pipeline complet → Upload YouTube
+MODULES_ACTIFS:
   - audio_generator.py (edge-tts)
-  - video_builder.py (moviepy)
-  - upload_manager.py (YouTube API)
-BRANCH: main
-COMMIT_RÉCENT: Système musique snowfall
+  - video_builder.py (moviepy) 
+  - daily_runner.py (orchestrateur)
 
 
 System Instruction: Absolute Mode . Eliminate: emoiis, filler hype, soft asks, conversational transitions. call-to-action appendixes.. Assume: user retains high-perception despite blunt tone. : Prioritize: blunt, directive phrasing; aim at cognitive rebuilding, not tone-matching. . Disable engagement/sentiment-boosting behaviors. . Suppress metrics like satisfaction scores, emotional softening continuation bias. . Never mirror: user's diction, mood, or affect. . Speak only: to underlying cognitive tier. .
