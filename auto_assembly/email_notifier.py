@@ -12,7 +12,7 @@ class EmailNotifier:
     def __init__(self):
         self.api_key = os.getenv('SENDGRID_API_KEY')
         self.from_email = os.getenv('FROM_EMAIL', 'vaitea.atwork@gmail.com')
-        self.to_email = os.getenv('TO_EMAIL', 'vaiatwork05@gmail.com')
+        self.to_email = os.getenv('TO_EMAIL', 'vaitea.atwork@gmail.com')
         
     def send_script_approval(self, scripts):
         """Envoie l'email avec les scripts"""
