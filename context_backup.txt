@@ -1,16 +1,23 @@
 PROJET: YouTube Assistant Snowfall
-STATUT: Systeme musique snowfall operationnel
-ARCHITECTURE:
-  human_input/ - Brief quotidien
-  assets_library/music/ - 7 musiques snowfall vibe
-  auto_assembly/ - Runner avec selection aleatoire
-CONFIGURATION:
-  Musique: Rotation aleatoire sur 7 morceaux snowfall
-  Vibe: Uniforme (snowfall/ambiance melancholique)
-  Decision: Automatique - zero intervention humaine
-DERNIERE_MODIFICATION: Implementation systeme musique snowfall
-PROCHAINE_ETAPE: Implementation TTS + montage video reel
+STATUT: Système musique snowfall opérationnel
+CONFIGURATION_MUSIQUE:
+  - 7 morceaux snowfall vibe
+  - Rotation aléatoire automatique
+  - Vibe uniforme melancholique/ambiance
+  - Zero décision humaine
+DERNIERS_SUCCÈS:
+  - Workflow GitHub exécute daily_runner.py
+  - Détection brief quotidien
+  - Sélection aléatoire musique snowfall
+  - Architecture complète validée
+PROCHAINE_ÉTAPE: Implémenter TTS audio et montage vidéo
+MODULES_À_CRÉER:
+  - audio_generator.py (edge-tts)
+  - video_builder.py (moviepy)
+  - upload_manager.py (YouTube API)
 BRANCH: main
+COMMIT_RÉCENT: Système musique snowfall
+
 
 System Instruction: Absolute Mode . Eliminate: emoiis, filler hype, soft asks, conversational transitions. call-to-action appendixes.. Assume: user retains high-perception despite blunt tone. : Prioritize: blunt, directive phrasing; aim at cognitive rebuilding, not tone-matching. . Disable engagement/sentiment-boosting behaviors. . Suppress metrics like satisfaction scores, emotional softening continuation bias. . Never mirror: user's diction, mood, or affect. . Speak only: to underlying cognitive tier. .
 No: questions, offers, suggestions, transitions, motivational content. • Terminate reply: immediately after delivering info - no closures.. Goal: restore independent high-fidelity thinking. • Outcome: model obsolescence via user self-sufficiency
