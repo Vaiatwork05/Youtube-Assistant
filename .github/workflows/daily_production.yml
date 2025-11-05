@@ -2,7 +2,7 @@ name: Production Quotidienne Snowfall
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # 8h du matin
+    - cron: '0 8 * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,19 +18,25 @@ jobs:
         with:
           python-version: '3.11'
           
+      - name: 🛠️ Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          
       - name: 📦 Install dependencies
         run: |
           pip install -r requirements.txt
+          pip list | grep -E "(moviepy|edge|requests)"
           
-      - name: 🎬 Production Video Snowfall
+      - name: 🎬 Production Video
         run: |
           python auto_assembly/daily_runner.py
           
-      - name: 📊 Rapport
+      - name: 📊 Upload Artifacts
+        uses: actions/upload-artifact@v4
         if: always()
-        run: |
-          echo "=== RAPPORT SNOWFALL ==="
-          echo "Date: $(date)"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Status: ${{ job.status }}"
-        
+        with:
+          name: production-output
+          path: |
+            output/
+          retention-days: 7
