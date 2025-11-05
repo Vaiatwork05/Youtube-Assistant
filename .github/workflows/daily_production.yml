@@ -1,38 +1,44 @@
-name: 🎬 Production Quotidienne Snowfall
-
+name: Daily Script Generation
 on:
   schedule:
-    - cron: '0 8 * * *'
-  workflow_dispatch:
+    - cron: '0 8 * * *'  # 8h du matin
+  workflow_dispatch:      # Déclenchement manuel
 
 jobs:
-  produce:
+  generate-and-notify:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: 📥 Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: 🐍 Setup Python
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
-      - name: 🛠️ Install FFmpeg
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          pip install requests python-dotenv
           
-      - name: 📦 Install dependencies
+      - name: Generate scripts
         run: |
-          pip install -r requirements.txt
+          python auto_assembly/script_generator.py
           
-      - name: 🎬 Production Video
+      - name: Send email notification
         run: |
-          python auto_assembly/daily_runner.py
+          cd auto_assembly
+          python email_notifier.py
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          FROM_EMAIL: "vaitea.atwork@gmail.com"
+          TO_EMAIL: "vaiatwork05@gmail.com"
           
-      - name: 📤 Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-output
-          path: output/
+      - name: Commit generated scripts
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add auto_assembly/scripts.json
+          git commit -m "Add generated scripts for $(date +'%Y-%m-%d')" || exit 0
+          git push
