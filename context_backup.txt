@@ -1,0 +1,15 @@
+PROJET: YouTube Assistant Hybrid
+STATUT: Workflow GitHub configuré mais non testé
+ARCHITECTURE: 
+  human_input/ - Décisions quotidiennes
+  assets_library/ - Médias curated  
+  auto_assembly/ - Execution technique
+FICHIERS_CRITIQUES:
+  daily_runner.py - Corrigé sans émojis
+  daily_production.yml - Workflow GitHub
+  requirements.txt - Dépendances
+DERNIER_PROBLÈME_RÉSOLU: Conflits Git, erreurs Unicode émojis
+PROBLÈME_COURANT: Pip non accessible sur Windows
+PROCHAINE_ÉTAPE: Tester workflow GitHub avec brief quotidien
+BRANCH: main
+COMMIT_RÉCENT: Fix: Remove emojis and add daily brief
