@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Install eSpeak only
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y espeak-ng ffmpeg
@@ -30,7 +30,7 @@ jobs:
           
       - name: Install Python dependencies
         run: |
-          pip install moviepy pillow numpy opencv-python
+          pip install moviepy pillow numpy opencv-python imageio-ffmpeg
           
       - name: Save script data
         run: |
