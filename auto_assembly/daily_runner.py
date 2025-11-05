@@ -1,7 +1,6 @@
-
 #!/usr/bin/env python3
 """
-YouTube Assistant - Runner avec TTS
+YouTube Assistant - Runner Complet TTS + Vidéo
 """
 
 import os
@@ -10,9 +9,15 @@ import random
 import asyncio
 from datetime import datetime
 
-# Import du nouveau module TTS
+# Import des modules
 sys.path.append(os.path.dirname(__file__))
-from audio_generator import AudioGenerator
+try:
+    from audio_generator import AudioGenerator
+    from video_builder import VideoBuilder
+    MODULES_LOADED = True
+except ImportError as e:
+    print(f"❌ Modules manquants: {e}")
+    MODULES_LOADED = False
 
 def get_random_snowfall_music():
     """Retourne une musique snowfall aléatoire"""
@@ -21,9 +26,9 @@ def get_random_snowfall_music():
         music_files = [f for f in os.listdir(music_dir) if f.endswith(('.mp3', '.wav'))]
         if music_files:
             selected = random.choice(music_files)
-            print(f"Musique sélectionnée: {selected}")
+            print(f"🎵 Musique sélectionnée: {selected}")
             return os.path.join(music_dir, selected)
-    print("Aucune musique snowfall disponible")
+    print("❌ Aucune musique snowfall disponible")
     return None
 
 def get_daily_script():
@@ -31,60 +36,115 @@ def get_daily_script():
     script_path = "human_input/script_approved.txt"
     if os.path.exists(script_path):
         with open(script_path, 'r', encoding='utf-8') as f:
-            return f.read().strip()
+            script = f.read().strip()
+            print(f"📝 Script chargé: {len(script)} caractères")
+            return script
+    print("❌ Aucun script disponible")
     return None
 
-async def generate_daily_content():
-    """Génère le contenu audio du jour"""
-    print("=== GÉNÉRATION CONTENU QUOTIDIEN ===")
+def validate_assets():
+    """Valide tous les assets nécessaires"""
+    print("🔍 Validation des assets...")
     
-    # 1. Récupération inputs
-    musique = get_random_snowfall_music()
-    script = get_daily_script()
-    
-    if not script:
-        print("❌ Aucun script disponible")
+    # Vérification musique
+    music_dir = "assets_library/music"
+    if not os.path.exists(music_dir):
+        print("❌ Dossier musique manquant")
         return False
     
-    if not musique:
-        print("❌ Aucune musique disponible")
+    music_files = [f for f in os.listdir(music_dir) if f.endswith(('.mp3', '.wav'))]
+    if not music_files:
+        print("❌ Aucun fichier musique trouvé")
         return False
     
-    print(f"Script: {len(script)} caractères")
-    print(f"Musique: {os.path.basename(musique)}")
+    print(f"✅ Musiques: {len(music_files)} fichiers")
     
-    # 2. Génération audio TTS
-    audio_gen = AudioGenerator()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    audio_file = f"voiceover_{timestamp}.wav"
-    
-    print("Génération TTS en cours...")
-    audio_path = await audio_gen.generate_audio(script, audio_file)
-    
-    if not audio_path:
-        print("❌ Échec génération audio")
-        return False
-    
-    print(f"✅ Audio généré: {os.path.basename(audio_path)}")
-    return True
-
-def main():
-    print("YouTube Assistant - Génération TTS")
-    print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # Vérification assets
-    if not os.path.exists("human_input/script_approved.txt"):
-        print("❌ Script manquant - création template...")
+    # Vérification script
+    script_path = "human_input/script_approved.txt"
+    if not os.path.exists(script_path):
+        print("❌ Script manquant")
         create_template_script()
         return False
     
-    # Génération contenu
+    print("✅ Script présent")
+    return True
+
+async def generate_audio_content(script):
+    """Génère le fichier audio TTS"""
     try:
-        success = asyncio.run(generate_daily_content())
-        return success
+        audio_gen = AudioGenerator()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        audio_file = f"voiceover_{timestamp}.wav"
+        
+        print("🔊 Génération TTS en cours...")
+        audio_path = await audio_gen.generate_audio(script, audio_file)
+        
+        if audio_path and os.path.exists(audio_path):
+            file_size = os.path.getsize(audio_path) / 1024  # KB
+            print(f"✅ Audio généré: {os.path.basename(audio_path)} ({file_size:.1f} KB)")
+            return audio_path
+        else:
+            print("❌ Échec génération audio")
+            return None
+            
     except Exception as e:
-        print(f"❌ Erreur génération: {e}")
+        print(f"❌ Erreur génération audio: {e}")
+        return None
+
+def create_video_content(audio_path, music_path):
+    """Crée la vidéo finale"""
+    try:
+        video_builder = VideoBuilder()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        output_name = f"video_{timestamp}"
+        
+        print("🎬 Montage vidéo en cours...")
+        video_path = video_builder.create_video(audio_path, music_path, output_name)
+        
+        if video_path and os.path.exists(video_path):
+            file_size = os.path.getsize(video_path) / (1024 * 1024)  # MB
+            print(f"✅ Vidéo créée: {os.path.basename(video_path)} ({file_size:.1f} MB)")
+            return video_path
+        else:
+            print("❌ Échec montage vidéo")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Erreur création vidéo: {e}")
+        return None
+
+async def execute_production_pipeline():
+    """Exécute le pipeline complet de production"""
+    print("🚀 DÉMARRAGE PRODUCTION")
+    print("=" * 50)
+    
+    # 1. Validation assets
+    if not validate_assets():
         return False
+    
+    # 2. Récupération inputs
+    music_path = get_random_snowfall_music()
+    script = get_daily_script()
+    
+    if not music_path or not script:
+        return False
+    
+    # 3. Génération audio TTS
+    audio_path = await generate_audio_content(script)
+    if not audio_path:
+        return False
+    
+    # 4. Montage vidéo
+    video_path = create_video_content(audio_path, music_path)
+    if not video_path:
+        return False
+    
+    # 5. Rapport final
+    print("=" * 50)
+    print("🎉 PRODUCTION TERMINÉE AVEC SUCCÈS")
+    print(f"📁 Vidéo: {os.path.basename(video_path)}")
+    print(f"⏱️  Durée: {datetime.now().strftime('%H:%M:%S')}")
+    return True
 
 def create_template_script():
     """Crée un template de script si manquant"""
@@ -100,6 +160,25 @@ CTA: Likez pour la partie 2!
     with open("human_input/script_approved.txt", "w", encoding='utf-8') as f:
         f.write(template)
     print("✅ Template script créé dans human_input/")
+
+def main():
+    """Fonction principale"""
+    print("YouTube Assistant - Pipeline Complet")
+    print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("-" * 40)
+    
+    if not MODULES_LOADED:
+        print("❌ Modules non chargés - installation requise")
+        return False
+    
+    try:
+        success = asyncio.run(execute_production_pipeline())
+        return success
+    except Exception as e:
+        print(f"💥 ERREUR CRITIQUE: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 if __name__ == "__main__":
     success = main()
