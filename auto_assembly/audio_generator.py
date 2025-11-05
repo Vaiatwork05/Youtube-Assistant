@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Générateur Audio TTS avec fallback pour GitHub Actions
+Générateur Audio TTS avec retry robuste - Version edge-tts 6.1.9
 """
 
 import os
 import asyncio
-import wave
-import struct
+import random
+from datetime import datetime
 
 class AudioGenerator:
     def __init__(self):
@@ -14,41 +14,60 @@ class AudioGenerator:
         os.makedirs(self.output_dir, exist_ok=True)
     
     async def generate_audio(self, text, output_filename):
-        """Génère audio avec fallback si Edge TTS échoue"""
+        """Génère audio avec retry robuste sur plusieurs voix"""
         try:
-            # Essaie Edge TTS d'abord
-            return await self._try_edge_tts(text, output_filename)
+            return await self.generate_audio_with_retry(text, output_filename)
         except Exception as e:
-            print(f"Edge TTS échoué: {e}")
-            print("Utilisation du fallback...")
+            print(f"❌ Erreur critique TTS: {e}")
             return self._create_fallback_audio(text, output_filename)
     
-    async def _try_edge_tts(self, text, output_filename):
-        """Essaie Edge TTS"""
-        import edge_tts
+    async def generate_audio_with_retry(self, text, output_filename):
+        """Nouvelle version avec retry et fallback robuste"""
+        voices = ['fr-FR-DeniseNeural', 'fr-FR-HenriNeural', 'fr-FR-AlainNeural']
         
-        voice = 'fr-FR-DeniseNeural'
-        rate = '+10%'
+        for voice in voices:
+            try:
+                print(f"🔊 Essai TTS avec voix: {voice}")
+                result = await self._try_single_voice(voice, text, output_filename)
+                if result:
+                    return result
+            except Exception as e:
+                print(f"❌ Voix {voice} échouée: {e}")
+                continue
         
-        communicate = edge_tts.Communicate(text, voice, rate=rate)
-        output_path = os.path.join(self.output_dir, output_filename)
-        
-        await communicate.save(output_path)
-        
-        # Vérifie que le fichier a été créé
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-            file_size = os.path.getsize(output_path) / 1024
-            print(f"✅ Audio Edge TTS: {output_path} ({file_size:.1f} KB)")
-            return output_path
-        else:
-            raise Exception("Fichier audio vide")
+        print("❌ Toutes les voix ont échoué, fallback silencieux")
+        return self._create_fallback_audio(text, output_filename)
+    
+    async def _try_single_voice(self, voice, text, output_filename):
+        """Essai avec une voix spécifique et timeout"""
+        try:
+            import edge_tts
+            
+            communicate = edge_tts.Communicate(text, voice, rate="+20%")
+            output_path = os.path.join(self.output_dir, output_filename)
+            
+            # Timeout plus long
+            await asyncio.wait_for(communicate.save(output_path), timeout=40.0)
+            
+            # Vérifie que le fichier est valide
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
+                file_size = os.path.getsize(output_path) / 1024
+                print(f"✅ TTS réussi avec {voice} ({file_size:.1f} KB)")
+                return output_path
+            else:
+                raise Exception("Fichier audio trop petit/corrompu")
+                
+        except asyncio.TimeoutError:
+            raise Exception("Timeout TTS dépassé (40s)")
+        except Exception as e:
+            raise Exception(f"Erreur TTS: {e}")
     
     def _create_fallback_audio(self, text, output_filename):
         """Crée un fallback basique pour GitHub Actions"""
         output_path = os.path.join(self.output_dir, output_filename)
         
         # Calcule durée approximative basée sur le texte
-        duration = max(10, len(text) / 15)  # ~15 caractères par seconde
+        duration = max(45, len(text) / 15)  # ~15 caractères par seconde
         
         print(f"🔶 Fallback audio - durée: {duration:.1f}s")
         
@@ -59,29 +78,32 @@ class AudioGenerator:
         print(f"✅ Audio fallback créé: {output_path} ({file_size:.1f} KB)")
         return output_path
     
-    def _create_silent_wav(self, filepath, duration=10):
-        """Crée un fichier WAV silencieux"""
-        framerate = 22050  # Fréquence réduite pour fichiers plus petits
+    def _create_silent_wav(self, filepath, duration=45):
+        """Crée un fichier WAV silencieux de durée garantie"""
+        import wave
+        import struct
+        
+        framerate = 22050
         nframes = int(framerate * duration)
         
         with wave.open(filepath, 'w') as wav_file:
-            wav_file.setnchannels(1)  # mono
-            wav_file.setsampwidth(2)  # 2 bytes = 16 bits
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
             wav_file.setframerate(framerate)
             wav_file.setnframes(nframes)
             
-            # Écrit des frames silencieuses (valeurs 0)
+            # Écrit des frames silencieuses
             silent_data = struct.pack('<h', 0) * nframes
             wav_file.writeframes(silent_data)
 
 def test_tts():
-    """Test le TTS avec fallback"""
+    """Test le TTS avec retry"""
     generator = AudioGenerator()
     
-    test_text = "Ceci est un test de génération audio avec fallback."
+    test_text = "Ceci est un test de génération audio avec le nouveau système de retry."
     
     async def run_test():
-        return await generator.generate_audio(test_text, "test_fallback.wav")
+        return await generator.generate_audio(test_text, "test_retry.wav")
     
     try:
         result = asyncio.run(run_test())
