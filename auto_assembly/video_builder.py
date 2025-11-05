@@ -47,7 +47,7 @@ class VideoBuilder:
         x = (1080 - text_width) // 2
         y = (1920 - text_height) // 2
         
-        # Dessine texte
+        # Dessine texte en BLANC pour visibilité
         draw.text((x, y), text, fill='white', font=font)
         
         # Convertit en array numpy pour MoviePy
@@ -84,7 +84,7 @@ class VideoBuilder:
             # Titre (5 premières secondes)
             if music_duration > 5:
                 print("🎨 Génération frame titre...")
-                title_clip = self.create_text_image("3 RÉVÉLATIONS", font_size=70, duration=5)
+                title_clip = self.create_text_image("3 RÉVÉLATIONS SURPRENANTES", font_size=70, duration=5)
                 video_clips.append(title_clip)
                 current_time += 5
             
@@ -143,7 +143,6 @@ def test_video_builder():
     # Crée un audio test si besoin
     if not os.path.exists(test_audio):
         os.makedirs("output/audio", exist_ok=True)
-        # Crée un fichier audio vide pour test
         open(test_audio, 'wb').close()
     
     if os.path.exists(test_music):
